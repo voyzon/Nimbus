@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "206509253761",
+    "project_id": "nimbus-7e0eb",
+    "storage_bucket": "nimbus-7e0eb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:206509253761:android:3a6db5396a46387ae65980",
+        "android_client_info": {
+          "package_name": "com.example.voyzon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWLaIRtPZns_DIK3F60TgXe7fuDoYY12g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
