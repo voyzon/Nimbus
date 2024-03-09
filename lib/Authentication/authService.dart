@@ -11,7 +11,8 @@ class AuthService {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -19,8 +20,7 @@ class AuthService {
 
       UserCredential authResult = await _auth.signInWithCredential(credential);
       return authResult.user;
-    } 
-    catch (e) {
+    } catch (e) {
       print("Error signing in with Google: $e");
       return null;
     }
@@ -31,12 +31,11 @@ class AuthService {
   }
 
   Future<void> signOut(BuildContext context) async {
-    try{
+    try {
       await FirebaseAuth.instance.signOut();
       await GoogleSignIn().signOut();
       Navigator.of(context).pushReplacementNamed('/');
-    }
-    catch (e){
+    } catch (e) {
       print("Error singing out: $e");
     }
   }
