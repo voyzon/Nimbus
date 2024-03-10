@@ -1,13 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:voyzon/firebase_options.dart';
-import 'Authentication/authService.dart'; 
-import 'Authentication/signInPage.dart'; 
-import 'Home/homePage.dart'; 
+import 'authentication/authService.dart';
+import 'screens/signInPage.dart';
+import 'screens/homePage.dart';
+import 'models/user.dart';
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
@@ -33,11 +32,8 @@ class MyApp extends StatelessWidget {
 class InitialPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-
     return FutureBuilder<User?>(
-      
       future: AuthService().getCurrentUser(),
-
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -45,26 +41,21 @@ class InitialPage extends StatelessWidget {
               child: CircularProgressIndicator(),
             ),
           );
-        }
-        else if (snapshot.hasError) {
+        } else if (snapshot.hasError) {
           return Scaffold(
             body: Center(
               child: Text("Error: ${snapshot.error}"),
             ),
           );
-        }
-        else {
+        } else {
           User? user = snapshot.data;
           if (user != null) {
             return HomePage(user: user);
-          }
-          else 
-          {
+          } else {
             return SignInPage(authService: AuthService());
           }
         }
       },
     );
-
   }
 }

@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:voyzon/Authentication/authService.dart';
+import 'package:voyzon/authentication/authService.dart';
+import '../models/user.dart';
 
 class HomePage extends StatelessWidget {
-
   final User? user;
   final AuthService _authService = AuthService();
   HomePage({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home Page'),
@@ -28,14 +26,12 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Welcome, ${user?.displayName ?? 'Guest'}!',
+              'Welcome, ${user?.username ?? 'Guest'}!',
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                
-              },
+              onPressed: () {},
               child: const Text('Main Action'),
             ),
           ],
