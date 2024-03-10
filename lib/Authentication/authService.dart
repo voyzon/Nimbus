@@ -45,7 +45,8 @@ class AuthService {
   Future<Model.User?> getCurrentUser() async {
     final User? user = _auth.currentUser;
     // Add user to firestore if not exists
-    final firestoreUser = await users.doc(user!.uid).get();
+    if (user == null) return null;
+    final firestoreUser = await users.doc(user.uid).get();
     if (!firestoreUser.exists) {
       final Model.User modelUser = Model.User(
         createdAt: DateTime.now(),
