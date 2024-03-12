@@ -5,6 +5,7 @@ import 'package:voyzon/authentication/authService.dart';
 import 'package:voyzon/common/taskWidget.dart';
 import 'package:voyzon/models/task.dart';
 import '../models/user.dart';
+import 'createTaskPage.dart';
 
 class HomePage extends StatelessWidget {
   final User? user;
@@ -68,6 +69,14 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => CreateTaskPage()),
+          );
+        },
+        child: const Icon(Icons.edit),
       ),
     );
   }
