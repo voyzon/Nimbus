@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:voyzon/models/user.dart';
+import 'package:voyzon/services/databaseServices.dart';
 import '../models/task.dart'; // Assuming your Task model is here
 
 class CreateTaskPage extends StatefulWidget {
+
+  final User? user;
+  CreateTaskPage({this.user});
+
+
   @override
   _CreateTaskPageState createState() => _CreateTaskPageState();
 }
 
 class _CreateTaskPageState extends State<CreateTaskPage> {
+  final DatabaseService _databaseService = DatabaseService();
   final _formKey = GlobalKey<FormState>();
   List<DateTime> _dates = [];
   List<bool> _selectedDates = [];
   String _title = '';
   String _description = '';
+  late User? user;
 
   @override
   void initState() {
@@ -21,6 +29,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
     _dates = _getDatesInRange(now, lastDayOfMonth);
     _selectedDates = List.generate(_dates.length, (_) => false);
+    user = widget.user;
+    print(user?.uid);
   }
 
   Widget _buildDateSelector() {
@@ -71,6 +81,14 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
       _formKey.currentState!.save();
 
       // TODO: Add to db
+      Task newTask = Task(
+        uid: user?.uid,
+        title: _title,
+        description: _description,
+      );
+
+      _databaseService.addTask(newTask);
+
       Navigator.of(context).pop();
     }
   }
