@@ -67,7 +67,11 @@ class _TaskWidgetState extends State<TaskWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text("Today"),
-              Text(f.format(widget.task.dueDate!))
+              Text(
+                widget.task.dueDate != null
+                    ? f.format(widget.task.dueDate!)
+                    : '',
+              )
             ],
           )
         ],

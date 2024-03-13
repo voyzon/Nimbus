@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Task {
   String? taskId;
   String? uid;
@@ -63,19 +65,19 @@ class Task {
         uid: json["uid"],
         title: json["title"],
         description: json["description"],
-        dueDate:
-            json["dueDate"] == null ? null : DateTime.parse(json["dueDate"]),
+        dueDate: json["dueDate"] == null ? null : (json["dueDate"] as Timestamp).toDate(),
         createdAt: json["createdAt"] == null
             ? null
-            : DateTime.parse(json["createdAt"]),
+            : (json["createdAt"] as Timestamp).toDate(),
         reminderTime: json["reminderTime"] == null
             ? []
-            : List<DateTime>.from(
-                json["reminderTime"]!.map((x) => DateTime.parse(x))),
+            : (json["reminderTime"] as List<dynamic>)
+                .map((timestamp) => (timestamp as Timestamp).toDate())
+                .toList(),
         urgent: json["urgent"],
         important: json["important"],
         isActive: json["isActive"],
-        typeOfTask: typeOfTaskValues.map[json["typeOfTask"]]!,
+        typeOfTask: json["typeOfTask"] != null ? typeOfTaskValues.map[json["typeOfTask"]] : null,
       );
 
   Map<String, dynamic> toJson() => {

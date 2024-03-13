@@ -1,15 +1,17 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:voyzon/authentication/authService.dart';
 import 'package:voyzon/common/taskWidget.dart';
 import 'package:voyzon/models/task.dart';
+import 'package:voyzon/services/databaseServices.dart';
 import '../models/user.dart';
 import 'createTaskPage.dart';
 
 class HomePage extends StatelessWidget {
   final User? user;
   final AuthService _authService = AuthService();
+  final DatabaseService _databaseService = DatabaseService();
+  
   HomePage({super.key, required this.user});
 
   @override
@@ -52,19 +54,49 @@ class HomePage extends StatelessWidget {
                     child: const Text('Important'))
               ],
             ),
-            // TODO: Add a ListView.builder to display tasks
             Expanded(
-              child: ListView(
-                children: [
-                  TaskWidget(
-                    task: Task(
-                      title: "Task 1",
-                      description:
-                          "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                      dueDate: DateTime.now(),
-                    ),
-                  ),
-                ],
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _databaseService.getAllTasks(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    final tasks = snapshot.data!.docs
+                        .map((doc) {
+                          var data = doc.data() as Map<String, dynamic>;
+                          data['taskId'] = doc.id;
+                          return Task.fromJson(data);
+                        })
+                        .where((task) =>
+                            task.uid ==
+                            user?.uid) 
+                        .toList();
+
+                    if (tasks.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'Create your first task...',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemCount: tasks.length,
+                      itemBuilder: (context, index) {
+                        return TaskWidget(task: tasks[index]);
+                      },
+                    );
+                  } else {
+                    return const Text('No tasks found');
+                  }
+                },
               ),
             ),
           ],
@@ -73,7 +105,7 @@ class HomePage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => CreateTaskPage()),
+            MaterialPageRoute(builder: (context) => CreateTaskPage(user: user)),
           );
         },
         child: const Icon(Icons.edit),
