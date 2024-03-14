@@ -22,7 +22,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Your App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        // primarySwatch: Colors.blue,
+        useMaterial3: true,
+        colorSchemeSeed: Colors.orange[700],
       ),
       home: InitialPage(),
     );
