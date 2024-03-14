@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:voyzon/authentication/authService.dart';
 import 'package:voyzon/common/taskWidget.dart';
 import 'package:voyzon/models/task.dart';
@@ -7,12 +7,19 @@ import 'package:voyzon/services/databaseServices.dart';
 import '../models/user.dart';
 import 'createTaskPage.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final User? user;
+
+  HomePage({Key? key, required this.user}) : super(key: key);
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
   final DatabaseService _databaseService = DatabaseService();
-  
-  HomePage({super.key, required this.user});
+  List<bool> _isSelected = [true, false, false];
 
   @override
   Widget build(BuildContext context) {
@@ -34,24 +41,35 @@ class HomePage extends StatelessWidget {
           children: [
             Row(
               children: [
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text('Urgent'),
+                ChoiceChip(
+                  label: const Text('All'),
+                  selected: _isSelected[0],
+                  onSelected: (isSelected) {
+                    setState(() {
+                      _isSelected[0] = isSelected;
+                    });
+                  },
                 ),
                 SizedBox(width: MediaQuery.of(context).size.height * 0.015),
-                ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text('Important'))
+                ChoiceChip(
+                  label: const Text('Urgent'),
+                  selected: _isSelected[1],
+                  onSelected: (isSelected) {
+                    setState(() {
+                      _isSelected[1] = isSelected;
+                    });
+                  },
+                ),
+                SizedBox(width: MediaQuery.of(context).size.height * 0.015),
+                ChoiceChip(
+                  label: const Text('Important'),
+                  selected: _isSelected[2],
+                  onSelected: (isSelected) {
+                    setState(() {
+                      _isSelected[2] = isSelected;
+                    });
+                  },
+                ),
               ],
             ),
             Expanded(
@@ -71,7 +89,7 @@ class HomePage extends StatelessWidget {
                         })
                         .where((task) =>
                             task.uid ==
-                            user?.uid) 
+                            widget.user?.uid)
                         .toList();
 
                     if (tasks.isEmpty) {
@@ -87,10 +105,22 @@ class HomePage extends StatelessWidget {
                       );
                     }
 
+                    List<Task> filteredTasks = [];
+                    if (_isSelected[0]) {
+                      filteredTasks = tasks;
+                    } else {
+                      if (_isSelected[1]) {
+                        filteredTasks.addAll(tasks.where((task) => task.urgent == true));
+                      }
+                      if (_isSelected[2]) {
+                        filteredTasks.addAll(tasks.where((task) => task.important == true));
+                      }
+                    }
+
                     return ListView.builder(
-                      itemCount: tasks.length,
+                      itemCount: filteredTasks.length,
                       itemBuilder: (context, index) {
-                        return TaskWidget(task: tasks[index]);
+                        return TaskWidget(task: filteredTasks[index]);
                       },
                     );
                   } else {
@@ -105,7 +135,7 @@ class HomePage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => CreateTaskPage(user: user)),
+            MaterialPageRoute(builder: (context) => CreateTaskPage(user: widget.user)),
           );
         },
         child: const Icon(Icons.edit),
