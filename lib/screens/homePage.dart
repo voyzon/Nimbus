@@ -30,7 +30,10 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () async {
-              await _authService.signOut(context);
+              bool? confirmSignOut = await _showConfirmationDialog(context);
+              if (confirmSignOut ?? false) {
+                await _authService.signOut(context);
+              }
             },
           ),
         ],
@@ -109,12 +112,9 @@ class _HomePageState extends State<HomePage> {
                     if (_isSelected[0]) {
                       filteredTasks = tasks;
                     } else {
-                      if (_isSelected[1]) {
-                        filteredTasks.addAll(tasks.where((task) => task.urgent == true));
-                      }
-                      if (_isSelected[2]) {
-                        filteredTasks.addAll(tasks.where((task) => task.important == true));
-                      }
+                      filteredTasks.addAll(tasks.where((task) =>
+                          (_isSelected[1] && task.urgent == true) ||
+                          (_isSelected[2] && task.important == true)));
                     }
 
                     return ListView.builder(
@@ -140,6 +140,67 @@ class _HomePageState extends State<HomePage> {
         },
         child: const Icon(Icons.edit),
       ),
+    );
+  }
+
+  Future<bool?> _showConfirmationDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Confirm Sign Out',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Do you really want to sign out?',
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: const Text(
+                    'No',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text(
+                    'Yes',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          elevation: 5.0,
+          backgroundColor: Colors.white,
+          contentPadding: const EdgeInsets.all(20.0),
+        );
+      },
     );
   }
 }
