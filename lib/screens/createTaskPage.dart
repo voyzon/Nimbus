@@ -20,6 +20,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   List<bool> _selectedDates = [];
   String _title = '';
   String _description = '';
+  bool _isUrgent = false;
+  bool _isImportant = false;
   late User? user;
 
   @override
@@ -84,6 +86,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
       Task newTask = Task(
         uid: user?.uid,
         title: _title,
+        urgent: _isUrgent,
+        important: _isImportant,
         description: _description,
       );
 
@@ -99,66 +103,148 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
       appBar: AppBar(
         title: const Text('New Task'),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(10.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: <Widget>[
-              _buildDateSelector(),
-              const SizedBox(height: 5),
-              TextFormField(
-                style: const TextStyle(fontSize: 24),
-                decoration: InputDecoration(
-                  hintText: 'Title',
-                  hintStyle: TextStyle(color: Colors.grey[700]),
-                  contentPadding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                  border: InputBorder.none,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _title = value!;
-                },
-              ),
-              TextFormField(
-                style: const TextStyle(fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: 'Description',
-                  hintStyle: TextStyle(color: Colors.grey[700]),
-                  contentPadding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                  border: InputBorder.none,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _description = value!;
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitTask,
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+      body: Stack(
+        children: <Widget>[
+          SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+              height: MediaQuery.of(context).size.height * 0.9,
+              child: Column(
+                children: <Widget>[
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: <Widget>[
+                        _buildDateSelector(),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                          decoration: InputDecoration(
+                            hintText: 'Title',
+                            hintStyle: TextStyle(color: Colors.grey[700]),
+                            contentPadding:
+                                const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                            border: InputBorder.none,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a title';
+                            }
+                            return null;
+                          },
+                          onSaved: (value) {
+                            _title = value!;
+                          },
+                        ),
+                        TextFormField(
+                          maxLines: null,
+                          style: const TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: 'Description',
+                            hintStyle: TextStyle(color: Colors.grey[700]),
+                            contentPadding:
+                                const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                            border: InputBorder.none,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a description';
+                            }
+                            return null;
+                          },
+                          onSaved: (value) {
+                            _description = value!;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
-                ),
-                child: Text('Create'),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      ChoiceChip(
+                        label: Text('Urgent'),
+                        selected: _isUrgent,
+                        backgroundColor:
+                            _isUrgent ? Colors.orange[100] : Colors.transparent,
+                        selectedColor: Colors.orange[100],
+                        labelStyle: TextStyle(
+                            fontSize: 14,
+                            color:  Colors.orange[600]),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: Colors.orange[600] ?? Colors.transparent,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        showCheckmark: false,
+                        onSelected: (isSelected) {
+                          setState(() {
+                            _isUrgent = isSelected;
+                          });
+                        },
+                      ),
+                      SizedBox(width: 10),
+                      ChoiceChip(
+                        label: Text('Important'),
+                        selected: _isImportant,
+                        backgroundColor: _isImportant
+                            ? Colors.orange[100]
+                            : Colors.transparent,
+                        selectedColor: Colors.orange[100],
+                        labelStyle: TextStyle(
+                            fontSize: 14,
+                            color:  Colors.orange[600]),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: Colors.orange[600] ?? Colors.transparent,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        showCheckmark: false,
+                        onSelected: (isSelected) {
+                          setState(() {
+                            _isImportant = isSelected;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  ElevatedButton(
+                    onPressed: _submitTask,
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('Create'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+
 }
 
 List<DateTime> _getDatesInRange(DateTime startDate, DateTime endDate) {
@@ -189,8 +275,8 @@ class CustomChoiceChip extends StatelessWidget {
         onSelected(!selected);
       },
       child: Container(
-        width: 50.0, // Adjust width as needed
-        height: 80.0, // Adjust height as needed
+        width: 50.0,
+        height: 80.0,
         padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
         decoration: BoxDecoration(
           color: selected
@@ -217,7 +303,7 @@ class CustomChoiceChip extends StatelessWidget {
               dayOfWeek,
               style: TextStyle(
                 color: Colors.orange[600],
-                fontSize: 12,
+                fontSize: 14,
               ),
             ),
           ],
@@ -226,3 +312,4 @@ class CustomChoiceChip extends StatelessWidget {
     );
   }
 }
+
