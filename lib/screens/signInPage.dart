@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../authentication/authService.dart';
+import '../Authentication/authService.dart';
 import '../models/user.dart';
 import 'homePage.dart';
 

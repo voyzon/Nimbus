@@ -1,10 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:voyzon/firebase_options.dart';
-import 'authentication/authService.dart';
-import 'screens/signInPage.dart';
-import 'screens/homePage.dart';
-import 'models/user.dart';
+import 'package:voyzon/models/user.dart';
+import 'package:voyzon/screens/createTaskPage.dart';
+import 'package:voyzon/screens/landingPage.dart';
+
+import 'common/routeNames.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,42 +24,25 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Your App',
       theme: ThemeData(
-        // primarySwatch: Colors.blue,
         useMaterial3: true,
         colorSchemeSeed: Colors.orange[700],
       ),
-      home: InitialPage(),
-    );
-  }
-}
-
-class InitialPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<User?>(
-      future: AuthService().getCurrentUser(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(
-              child: Text("Error: ${snapshot.error}"),
-            ),
-          );
-        } else {
-          User? user = snapshot.data;
-          if (user != null) {
-            return HomePage(user: user);
-          } else {
-            return SignInPage(authService: AuthService());
-          }
+      initialRoute: "/",
+      onGenerateRoute: (settings) {
+        final args = settings.arguments;
+        switch(settings.name) {
+          case RouteNames.HOME_PAGE:
+            return MaterialPageRoute(builder: (_) => LandingPage());
+          case RouteNames.CREATE_TASK:
+            if(args is User?) {
+              return MaterialPageRoute(builder: (_)=> CreateTaskPage(user: args));
+            }
+          // default:
+          //   return _errorRoute
         }
       },
     );
   }
 }
+
+
