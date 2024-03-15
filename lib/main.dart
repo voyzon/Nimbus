@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
           case RouteNames.HOME_PAGE:
             return MaterialPageRoute(builder: (_) => LandingPage());
           case RouteNames.CREATE_TASK:
-            if(args is User) {
+            if(args is User?) {
               return MaterialPageRoute(builder: (_)=> CreateTaskPage(user: args));
             }
           // default:
