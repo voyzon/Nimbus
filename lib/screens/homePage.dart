@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:voyzon/authentication/authService.dart';
+import 'package:voyzon/common/routeNames.dart';
 import 'package:voyzon/common/taskWidget.dart';
 import 'package:voyzon/models/task.dart';
 import 'package:voyzon/services/databaseServices.dart';
@@ -134,9 +135,7 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => CreateTaskPage(user: widget.user)),
-          );
+          Navigator.pushNamed(context, RouteNames.CREATE_TASK, arguments: widget.user);
         },
         child: const Icon(Icons.edit),
       ),
