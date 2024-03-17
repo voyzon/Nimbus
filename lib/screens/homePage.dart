@@ -3,96 +3,95 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:voyzon/authentication/authService.dart';
 import 'package:voyzon/common/routeNames.dart';
 import 'package:voyzon/common/taskWidget.dart';
+import 'package:voyzon/components/task_category_filter_chips.dart';
 import 'package:voyzon/models/task.dart';
 import 'package:voyzon/services/databaseServices.dart';
 import '../models/user.dart';
 
-class HomePage extends StatefulWidget {
-  final User? user;
+enum TaskCategory {
+  URGENT("Urgent"),
+  IMPORTANT("Important");
 
-  HomePage({Key? key, required this.user}) : super(key: key);
+  const TaskCategory(this.name);
+
+  final String name;
+}
+
+class HomePage extends StatefulWidget {
+  final User user;
+  final AuthService _authService = AuthService();
+  final DatabaseService _databaseService = DatabaseService();
+
+  HomePage({super.key, required this.user});
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final AuthService _authService = AuthService();
-  final DatabaseService _databaseService = DatabaseService();
-  List<bool> _isSelected = [true, false, false];
+  bool _isUrgentSelected = false;
+  bool _isImportantSelected = false;
+  bool _isAllSelected = true;
+
+  _allChipSelected(state) {
+    setState(() {
+      _isAllSelected = true;
+      _isUrgentSelected = false;
+      _isImportantSelected = false;
+    });
+  }
+
+  _urgentChipSelected(state) {
+    setState(() {
+      _isAllSelected = false;
+      _isUrgentSelected = true;
+    });
+  }
+
+  _importantChipSelected(state) {
+    setState(() {
+      _isAllSelected = false;
+      _isImportantSelected = true;
+    });
+  }
+
+  _getTaskList(AsyncSnapshot<QuerySnapshot> snapshot) {
+    return snapshot.data!.docs
+        .map((doc) {
+          var data = doc.data() as Map<String, dynamic>;
+          data['taskId'] = doc.id;
+          return Task.fromJson(data);
+        })
+        .where((task) => task.uid == widget.user?.uid)
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('To Do'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () async {
-              bool? confirmSignOut = await _showConfirmationDialog(context);
-              if (confirmSignOut ?? false) {
-                await _authService.signOut(context);
-              }
-            },
-          ),
-        ],
-      ),
+      appBar: _appbar(),
       body: Container(
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         child: Column(
           children: [
-            Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('All'),
-                  selected: _isSelected[0],
-                  onSelected: (isSelected) {
-                    setState(() {
-                      _isSelected[0] = isSelected;
-                    });
-                  },
-                ),
-                SizedBox(width: MediaQuery.of(context).size.height * 0.015),
-                ChoiceChip(
-                  label: const Text('Urgent'),
-                  selected: _isSelected[1],
-                  onSelected: (isSelected) {
-                    setState(() {
-                      _isSelected[1] = isSelected;
-                    });
-                  },
-                ),
-                SizedBox(width: MediaQuery.of(context).size.height * 0.015),
-                ChoiceChip(
-                  label: const Text('Important'),
-                  selected: _isSelected[2],
-                  onSelected: (isSelected) {
-                    setState(() {
-                      _isSelected[2] = isSelected;
-                    });
-                  },
-                ),
-              ],
-            ),
+            TaskCategoryFilterChips(
+                _isAllSelected,
+                _isUrgentSelected,
+                _isImportantSelected,
+                _allChipSelected,
+                _urgentChipSelected,
+                _importantChipSelected),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: _databaseService.getAllTasks(),
+                stream: widget._databaseService.getAllTasks(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
+                    //TODO: Add a snackbar for error msg.
                     return Text('Error: ${snapshot.error}');
                   } else if (snapshot.hasData) {
-                    final tasks = snapshot.data!.docs
-                        .map((doc) {
-                          var data = doc.data() as Map<String, dynamic>;
-                          data['taskId'] = doc.id;
-                          return Task.fromJson(data);
-                        })
-                        .where((task) => task.uid == widget.user?.uid)
-                        .toList();
-
+                    final tasks = _getTaskList(snapshot);
                     if (tasks.isEmpty) {
                       return const Center(
                         child: Text(
@@ -107,12 +106,12 @@ class _HomePageState extends State<HomePage> {
                     }
 
                     List<Task> filteredTasks = [];
-                    if (_isSelected[0]) {
+                    if (_isAllSelected) {
                       filteredTasks = tasks;
                     } else {
                       filteredTasks.addAll(tasks.where((task) =>
-                          (_isSelected[1] && task.urgent == true) ||
-                          (_isSelected[2] && task.important == true)));
+                          (_isUrgentSelected && task.urgent == true) ||
+                          (_isImportantSelected && task.important == true)));
                     }
 
                     final completedTasks = filteredTasks
@@ -246,6 +245,23 @@ class _HomePageState extends State<HomePage> {
           contentPadding: const EdgeInsets.all(20.0),
         );
       },
+    );
+  }
+
+  _appbar() {
+    return AppBar(
+      title: const Text('To Do'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.exit_to_app),
+          onPressed: () async {
+            bool? confirmSignOut = await _showConfirmationDialog(context);
+            if (confirmSignOut ?? false) {
+              await widget._authService.signOut(context);
+            }
+          },
+        ),
+      ],
     );
   }
 }

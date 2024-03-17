@@ -7,14 +7,13 @@ import '../models/user.dart';
 import 'homePage.dart';
 
 
-
 class LandingPage extends StatefulWidget {
   @override
   State<LandingPage> createState() => _LandingPageState();
 }
 
 class _LandingPageState extends State<LandingPage> {
-  Future<User?>? _currentUser;
+  late Future<User?> _currentUser;
 
   @override
   void initState() {
@@ -27,12 +26,9 @@ class _LandingPageState extends State<LandingPage> {
       future: _currentUser,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
+          return _progressIndicator();
         } else if (snapshot.hasError) {
+          //TODO: Think how to handel this?
           return Scaffold(
             body: Center(
               child: Text("Error: ${snapshot.error}"),
@@ -43,10 +39,18 @@ class _LandingPageState extends State<LandingPage> {
           if (user != null) {
             return HomePage(user: user);
           } else {
-            return SignInPage(authService: AuthService());
+            return SignInPage();
           }
         }
       },
+    );
+  }
+
+  Widget _progressIndicator() {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }

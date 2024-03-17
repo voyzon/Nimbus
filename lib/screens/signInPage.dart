@@ -4,16 +4,26 @@ import '../Authentication/authService.dart';
 import '../models/user.dart';
 import 'homePage.dart';
 
-class SignInPage extends StatefulWidget {
-  final AuthService authService;
 
-  const SignInPage({super.key, required this.authService});
+class SignInPage extends StatelessWidget {
+  final authService = AuthService();
 
-  @override
-  _SignInPageState createState() => _SignInPageState();
-}
+  _signInUser(BuildContext context) async {
+    User? user = await authService.signInWithGoogle();
 
-class _SignInPageState extends State<SignInPage> {
+    if (user != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomePage(user: user),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Unable to sign in user."))
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,19 +32,7 @@ class _SignInPageState extends State<SignInPage> {
       ),
       body: Center(
         child: ElevatedButton(
-          onPressed: () async {
-            User? user = await widget.authService.signInWithGoogle();
-
-            if (user != null) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => HomePage(user: user),
-                ),
-              );
-            } else {
-              // TODO: Handle unsuccessful sign-in
-            }
-          },
+          onPressed: _signInUser(context),
           child: const Text('Sign in with Google'),
         ),
       ),
