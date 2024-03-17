@@ -43,15 +43,23 @@ class _HomePageState extends State<HomePage> {
 
   _urgentChipSelected(state) {
     setState(() {
+      // To avoid getting all chip not selected.
+      bool isAnyOtherChipActive = _isImportantSelected || _isAllSelected;
+      if(isAnyOtherChipActive){
+        _isUrgentSelected = state;
+      }
       _isAllSelected = false;
-      _isUrgentSelected = true;
     });
   }
 
   _importantChipSelected(state) {
     setState(() {
+      // To avoid getting all chip not selected.
+      bool isAnyOtherChipActive = _isImportantSelected || _isAllSelected;
+      if(isAnyOtherChipActive){
+        _isImportantSelected = state;
+      }
       _isAllSelected = false;
-      _isImportantSelected = true;
     });
   }
 
@@ -130,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                           return TaskWidget(task: activeTasks[index]);
                         } else if (index == activeTasks.length &&
                             completedTasks.isNotEmpty) {
-                          return Row(
+                          return const Row(
                             children: [
                               Expanded(
                                 child: Divider(
