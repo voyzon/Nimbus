@@ -90,9 +90,7 @@ class _HomePageState extends State<HomePage> {
                           data['taskId'] = doc.id;
                           return Task.fromJson(data);
                         })
-                        .where((task) =>
-                            task.uid ==
-                            widget.user?.uid)
+                        .where((task) => task.uid == widget.user?.uid)
                         .toList();
 
                     if (tasks.isEmpty) {
@@ -117,10 +115,58 @@ class _HomePageState extends State<HomePage> {
                           (_isSelected[2] && task.important == true)));
                     }
 
+                    final completedTasks = filteredTasks
+                        .where((task) => !(task.isActive ?? false))
+                        .toList();
+                    final activeTasks = filteredTasks
+                        .where((task) => task.isActive ?? false)
+                        .toList();
+
                     return ListView.builder(
-                      itemCount: filteredTasks.length,
+                      itemCount: activeTasks.length +
+                          (completedTasks.isNotEmpty ? 1 : 0) +
+                          completedTasks.length,
                       itemBuilder: (context, index) {
-                        return TaskWidget(task: filteredTasks[index]);
+                        if (index < activeTasks.length) {
+                          return TaskWidget(task: activeTasks[index]);
+                        } else if (index == activeTasks.length &&
+                            completedTasks.isNotEmpty) {
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  thickness: 1,
+                                  color: Colors.black,
+                                  height: 20,
+                                  indent: 10,
+                                  endIndent: 10,
+                                ),
+                              ),
+                              Text(
+                                'Completed',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  thickness: 1,
+                                  color: Colors.black,
+                                  height: 20,
+                                  indent: 10,
+                                  endIndent: 10,
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          final completedIndex = index -
+                              activeTasks.length -
+                              (completedTasks.isNotEmpty ? 1 : 0);
+                          return TaskWidget(
+                              task: completedTasks[completedIndex]);
+                        }
                       },
                     );
                   } else {
@@ -134,7 +180,8 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, RouteNames.CREATE_TASK, arguments: widget.user);
+          Navigator.pushNamed(context, RouteNames.CREATE_TASK,
+              arguments: widget.user);
         },
         child: const Icon(Icons.edit),
       ),

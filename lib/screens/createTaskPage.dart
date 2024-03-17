@@ -42,7 +42,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     return dates;
   }
 
-  void _submitTask() {
+  void _submitTask() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 

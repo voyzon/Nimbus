@@ -16,13 +16,17 @@ class _TaskWidgetState extends State<TaskWidget> {
   final f = DateFormat('yyyy-MM-dd');
   @override
   Widget build(BuildContext context) {
+    final isActive = widget.task.isActive ?? false; 
+    final containerColor = Colors.grey.shade300;
+    final titleColor = isActive ? Colors.black : Colors.grey;
+
     return Container(
       margin: EdgeInsets.symmetric(
           vertical: MediaQuery.of(context).size.height * 0.02),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.grey.shade300,
+          color: containerColor,
         ),
         borderRadius: BorderRadius.circular(10),
       ),
@@ -32,11 +36,15 @@ class _TaskWidgetState extends State<TaskWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                widget.task.title!,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
+              RichText(
+                text: TextSpan(
+                  text: widget.task.title!,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: titleColor,
+                    decoration: isActive ? TextDecoration.none : TextDecoration.lineThrough,
+                  ),
                 ),
               ),
               InkWell(
@@ -55,7 +63,7 @@ class _TaskWidgetState extends State<TaskWidget> {
             widget.task.description!,
             maxLines: 3,
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: isActive ? Colors.grey.shade600 : Colors.grey,
               fontSize: 14,
               overflow: TextOverflow.fade,
             ),
@@ -79,3 +87,4 @@ class _TaskWidgetState extends State<TaskWidget> {
     );
   }
 }
+

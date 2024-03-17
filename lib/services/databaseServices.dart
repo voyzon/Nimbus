@@ -17,7 +17,10 @@ class DatabaseService{
 
   Future<void> addTask(Task task) async {
     try {
-      await _tasksRef.add(task.toJson());
+      DocumentReference docRef = await _tasksRef.add(task.toJson());
+      String taskId = docRef.id;
+      task.taskId = taskId;
+      await docRef.update({'taskId': taskId});
     } catch (error) {
       print('Error adding task: $error');
     }
