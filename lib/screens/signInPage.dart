@@ -32,7 +32,7 @@ class SignInPage extends StatelessWidget {
       ),
       body: Center(
         child: ElevatedButton(
-          onPressed: _signInUser(context),
+          onPressed: () => _signInUser(context),
           child: const Text('Sign in with Google'),
         ),
       ),
