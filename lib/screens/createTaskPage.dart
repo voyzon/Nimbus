@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:voyzon/common/dateSelectorWidget.dart';
 import 'package:voyzon/models/user.dart';
@@ -51,6 +52,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
       task.important = _isImportant;
       task.isActive = true;
       task.uid = user?.uid;
+      task.createdAt = Timestamp.fromDate(DateTime.now());
 
       _databaseService.addTask(task);
       Navigator.of(context).pop();
@@ -110,12 +112,6 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                                 const EdgeInsets.fromLTRB(5, 0, 5, 0),
                             border: InputBorder.none,
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a description';
-                            }
-                            return null;
-                          },
                           onSaved: (value) {
                             task.description = value!;
                           },

@@ -8,7 +8,7 @@ class Task {
   String? title;
   String? description;
   DateTime? dueDate;
-  DateTime? createdAt;
+  Timestamp? createdAt;
   List<DateTime>? reminderTime;
   bool? urgent;
   bool? important;
@@ -35,7 +35,7 @@ class Task {
     String? title,
     String? description,
     DateTime? dueDate,
-    DateTime? createdAt,
+    Timestamp? createdAt,
     List<DateTime>? reminderTime,
     bool? urgent,
     bool? important,
@@ -68,7 +68,7 @@ class Task {
         dueDate: json["dueDate"] == null ? null : (json["dueDate"] as Timestamp).toDate(),
         createdAt: json["createdAt"] == null
             ? null
-            : (json["createdAt"] as Timestamp).toDate(),
+            : (json["createdAt"] as Timestamp),
         reminderTime: json["reminderTime"] == null
             ? []
             : (json["reminderTime"] as List<dynamic>)
@@ -86,7 +86,7 @@ class Task {
         "title": title,
         "description": description,
         "dueDate": dueDate?.toIso8601String(),
-        "createdAt": createdAt?.toIso8601String(),
+        "createdAt": createdAt,
         "reminderTime": reminderTime == null
             ? []
             : List<dynamic>.from(reminderTime!.map((x) => x.toIso8601String())),
