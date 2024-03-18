@@ -43,9 +43,9 @@ class _HomePageState extends State<HomePage> {
 
   _urgentChipSelected(state) {
     setState(() {
-      // To avoid getting all chip not selected.
-      bool isAnyOtherChipActive = _isImportantSelected || _isAllSelected;
-      if(isAnyOtherChipActive){
+      // Logic to unselect a chip only when any another chip is active
+      bool isAnyOtherChipSelected = _isImportantSelected || _isAllSelected;
+      if (state || isAnyOtherChipSelected) {
         _isUrgentSelected = state;
       }
       _isAllSelected = false;
@@ -54,9 +54,9 @@ class _HomePageState extends State<HomePage> {
 
   _importantChipSelected(state) {
     setState(() {
-      // To avoid getting all chip not selected.
-      bool isAnyOtherChipActive = _isImportantSelected || _isAllSelected;
-      if(isAnyOtherChipActive){
+      // Logic to unselect a chip only when any another chip is active
+      bool isAnyOtherChipActive = _isUrgentSelected || _isAllSelected;
+      if (state || isAnyOtherChipActive) {
         _isImportantSelected = state;
       }
       _isAllSelected = false;
@@ -70,7 +70,7 @@ class _HomePageState extends State<HomePage> {
           data['taskId'] = doc.id;
           return Task.fromJson(data);
         })
-        .where((task) => task.uid == widget.user?.uid)
+        .where((task) => task.uid == widget.user.uid)
         .toList();
   }
 
