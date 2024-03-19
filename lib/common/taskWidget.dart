@@ -20,7 +20,6 @@ class _TaskWidgetState extends State<TaskWidget> {
       widget.task.isActive = !(widget.task.isActive ?? false);
     });
 
-    // Update the task in the Firebase database
     DatabaseService().updateTaskStatus(widget.task);
   }
 
