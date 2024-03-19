@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:voyzon/models/task.dart';
+import 'package:voyzon/services/databaseServices.dart';
 
 class TaskWidget extends StatefulWidget {
   final Task task;
-  const TaskWidget({super.key, required this.task});
+  const TaskWidget({Key? key, required this.task}) : super(key: key);
 
   @override
   State<TaskWidget> createState() => _TaskWidgetState();
@@ -14,6 +15,14 @@ class TaskWidget extends StatefulWidget {
 
 class _TaskWidgetState extends State<TaskWidget> {
   final f = DateFormat('yyyy-MM-dd');
+  void toggleTaskCompletion() {
+    setState(() {
+      widget.task.isActive = !(widget.task.isActive ?? false);
+    });
+
+    DatabaseService().updateTaskStatus(widget.task);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isActive = widget.task.isActive ?? false; 
@@ -48,7 +57,7 @@ class _TaskWidgetState extends State<TaskWidget> {
                 ),
               ),
               InkWell(
-                onTap: () {},
+                onTap: toggleTaskCompletion,
                 child: Icon(
                   Icons.circle_outlined,
                   size: MediaQuery.of(context).size.height * 0.02,

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:voyzon/authentication/authService.dart';
 import 'package:voyzon/common/routeNames.dart';
 import 'package:voyzon/common/taskWidget.dart';
+import 'package:voyzon/components/completedSeperator';
 import 'package:voyzon/components/task_category_filter_chips.dart';
 import 'package:voyzon/models/task.dart';
 import 'package:voyzon/services/databaseServices.dart';
@@ -99,83 +100,7 @@ class _HomePageState extends State<HomePage> {
                     //TODO: Add a snackbar for error msg.
                     return Text('Error: ${snapshot.error}');
                   } else if (snapshot.hasData) {
-                    final tasks = _getTaskList(snapshot);
-                    if (tasks.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'Create your first task...',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-                    }
-
-                    List<Task> filteredTasks = [];
-                    if (_isAllSelected) {
-                      filteredTasks = tasks;
-                    } else {
-                      filteredTasks.addAll(tasks.where((task) =>
-                          (_isUrgentSelected && task.urgent == true) ||
-                          (_isImportantSelected && task.important == true)));
-                    }
-
-                    final completedTasks = filteredTasks
-                        .where((task) => !(task.isActive ?? false))
-                        .toList();
-                    final activeTasks = filteredTasks
-                        .where((task) => task.isActive ?? false)
-                        .toList();
-
-                    return ListView.builder(
-                      itemCount: activeTasks.length +
-                          (completedTasks.isNotEmpty ? 1 : 0) +
-                          completedTasks.length,
-                      itemBuilder: (context, index) {
-                        if (index < activeTasks.length) {
-                          return TaskWidget(task: activeTasks[index]);
-                        } else if (index == activeTasks.length &&
-                            completedTasks.isNotEmpty) {
-                          return const Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  thickness: 1,
-                                  color: Colors.black,
-                                  height: 20,
-                                  indent: 10,
-                                  endIndent: 10,
-                                ),
-                              ),
-                              Text(
-                                'Completed',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  thickness: 1,
-                                  color: Colors.black,
-                                  height: 20,
-                                  indent: 10,
-                                  endIndent: 10,
-                                ),
-                              ),
-                            ],
-                          );
-                        } else {
-                          final completedIndex = index -
-                              activeTasks.length -
-                              (completedTasks.isNotEmpty ? 1 : 0);
-                          return TaskWidget(
-                              task: completedTasks[completedIndex]);
-                        }
-                      },
-                    );
+                    return buildTaskListWidget(snapshot);
                   } else {
                     return const Text('No tasks found');
                   }
@@ -192,6 +117,53 @@ class _HomePageState extends State<HomePage> {
         },
         child: const Icon(Icons.edit),
       ),
+    );
+  }
+
+  Widget buildTaskListWidget(AsyncSnapshot<QuerySnapshot> snapshot) {
+    final tasks = _getTaskList(snapshot);
+    if (tasks.isEmpty) {
+      return const Center(
+        child: Text(
+          'Create your first task...',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+      );
+    }
+
+    List<Task> filteredTasks = [];
+    if (_isAllSelected) {
+      filteredTasks = tasks;
+    } else {
+      filteredTasks.addAll(tasks.where((task) =>
+          (_isUrgentSelected && task.urgent == true) ||
+          (_isImportantSelected && task.important == true)));
+    }
+
+    final completedTasks =
+        filteredTasks.where((task) => !(task.isActive ?? false)).toList();
+    final activeTasks =
+        filteredTasks.where((task) => task.isActive ?? false).toList();
+
+    return ListView.builder(
+      itemCount: activeTasks.length +
+          (completedTasks.isNotEmpty ? 1 : 0) +
+          completedTasks.length,
+      itemBuilder: (context, index) {
+        if (index < activeTasks.length) {
+          return TaskWidget(task: activeTasks[index]);
+        } else if (index == activeTasks.length && completedTasks.isNotEmpty) {
+          return CompletedSeparator();
+        } else {
+          final completedIndex =
+              index - activeTasks.length - (completedTasks.isNotEmpty ? 1 : 0);
+          return TaskWidget(task: completedTasks[completedIndex]);
+        }
+      },
     );
   }
 
