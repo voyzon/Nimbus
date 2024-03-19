@@ -6,9 +6,9 @@ import 'package:voyzon/services/databaseServices.dart';
 import '../models/task.dart';
 
 class CreateTaskPage extends StatefulWidget {
-
+  final Task? task;
   final User? user;
-  CreateTaskPage({this.user});
+  CreateTaskPage({this.user, this.task});
 
 
   @override
@@ -23,17 +23,30 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   List<bool> _selectedDates = [];
   bool _isUrgent = false;
   bool _isImportant = false;
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+
   Task task = Task();
 
   @override
   void initState() {
-    super.initState();
-    DateTime now = DateTime.now();
-    DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-    _dates = _getDatesInRange(now, lastDayOfMonth);
-    _selectedDates = List.generate(_dates.length, (_) => false);
-    user = widget.user;
+  super.initState();
+  DateTime now = DateTime.now();
+  DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+  user = widget.user;
+  task = widget.task ?? Task(); // Use provided task or create new one
+  _titleController = TextEditingController(text: task.title);
+  _descriptionController = TextEditingController(text: task.description);
+  _dates = _getDatesInRange(now, lastDayOfMonth);
+  _selectedDates = List.generate(_dates.length, (_) => false);
+  _isUrgent = task.urgent ?? false;
+  _isImportant = task.important ?? false;
+
+  if (user != null) {
+    task.uid = user!.uid;
   }
+}
+
 
   List<DateTime> _getDatesInRange(DateTime startDate, DateTime endDate) {
     List<DateTime> dates = [];
@@ -43,27 +56,35 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     return dates;
   }
 
-  void _submitTask() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+  void _submitTask() {
+  if (_formKey.currentState!.validate()) {
+    // Populate task with form values
+    task.title = _titleController.text;
+    task.description = _descriptionController.text;
+    task.urgent = _isUrgent;
+    task.important = _isImportant;
+    task.isActive = true;
+    task.createdAt = Timestamp.fromDate(DateTime.now());
+    print(user?.uid);
 
-      // TODO: Add to db
-      task.urgent = _isUrgent;
-      task.important = _isImportant;
-      task.isActive = true;
-      task.uid = user?.uid;
-      task.createdAt = Timestamp.fromDate(DateTime.now());
-
+    if (widget.task == null) {
+      // If task is null, it's a new task, so add it
       _databaseService.addTask(task);
-      Navigator.of(context).pop();
+    } else {
+      // If task is not null, it's an existing task, so update it
+      _databaseService.updateTask(task);
     }
+
+    // Navigate back
+    Navigator.of(context).pop();
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Task'),
+        title: Text(widget.task != null ? 'Edit Task' : 'New Task'),
       ),
       body: Stack(
         children: <Widget>[
@@ -84,6 +105,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
+                          controller: _titleController,
                           style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                           decoration: InputDecoration(
                             hintText: 'Title',
@@ -103,6 +125,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                           },
                         ),
                         TextFormField(
+                          controller: _descriptionController,
                           maxLines: null,
                           style: const TextStyle(fontSize: 14),
                           decoration: InputDecoration(

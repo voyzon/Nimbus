@@ -34,4 +34,14 @@ class DatabaseService{
       throw e;
     }
   }
+
+  Future<void> updateTask(Task task) async {
+    try {
+      await _firestore.collection('tasks').doc(task.taskId).update(task.toJson());
+    } catch (e) {
+      print('Error updating task: $e');
+      throw Exception('Failed to update task');
+    }
+  }
+
 }
