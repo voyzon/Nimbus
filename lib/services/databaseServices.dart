@@ -26,4 +26,12 @@ class DatabaseService{
     }
   }
 
+  Future<void> updateTaskStatus(Task task) async {
+    try {
+      await _tasksRef.doc(task.taskId).update(task.toJson());
+    } catch (e) {
+      print('Error updating task: $e');
+      throw e;
+    }
+  }
 }
