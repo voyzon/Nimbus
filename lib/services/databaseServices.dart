@@ -1,26 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
+import 'package:uuid/v4.dart';
 import 'package:voyzon/models/task.dart';
 
-const String TODO_COLLECTION_REF = "tasks";
+import '../common/constants.dart';
 
-class DatabaseService{
+class DatabaseService {
+  DatabaseService._()
+      : _tasksRef = FirebaseFirestore.instance.collection(TODO_COLLECTION_REF);
   final _firestore = FirebaseFirestore.instance;
   late final CollectionReference _tasksRef;
 
-  DatabaseService(){
-    _tasksRef = _firestore.collection(TODO_COLLECTION_REF);
-  }
+  static final DatabaseService instance = DatabaseService._();
 
-  Stream<QuerySnapshot> getAllTasks(){
-    return _tasksRef.snapshots();
+  static DatabaseService get getInstace => instance;
+
+  Future<QuerySnapshot> getTasks(uid) async {
+    return _tasksRef.where('uid', isEqualTo: uid).get();
   }
 
   Future<void> addTask(Task task) async {
     try {
-      DocumentReference docRef = await _tasksRef.add(task.toJson());
-      String taskId = docRef.id;
-      task.taskId = taskId;
-      await docRef.update({'taskId': taskId});
+      await _tasksRef.doc(task.taskId!).set(task.toJson());
     } catch (error) {
       print('Error adding task: $error');
     }
@@ -37,11 +38,13 @@ class DatabaseService{
 
   Future<void> updateTask(Task task) async {
     try {
-      await _firestore.collection('tasks').doc(task.taskId).update(task.toJson());
+      await _firestore
+          .collection('tasks')
+          .doc(task.taskId)
+          .update(task.toJson());
     } catch (e) {
       print('Error updating task: $e');
       throw Exception('Failed to update task');
     }
   }
-
 }

@@ -1,27 +1,24 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 import 'package:voyzon/authentication/authService.dart';
 import 'package:voyzon/common/routeNames.dart';
 import 'package:voyzon/common/taskWidget.dart';
-import 'package:voyzon/components/completedSeperator';
+import 'package:voyzon/components/completedSeperator.dart';
 import 'package:voyzon/components/task_category_filter_chips.dart';
 import 'package:voyzon/models/task.dart';
+import 'package:voyzon/redux/appState.dart';
+import 'package:voyzon/redux/tasks/tasksAction.dart';
+import 'package:voyzon/redux/tasks/tasksState.dart';
 import 'package:voyzon/services/databaseServices.dart';
+
+import '../common/viewModel.dart';
 import '../models/user.dart';
-
-enum TaskCategory {
-  URGENT("Urgent"),
-  IMPORTANT("Important");
-
-  const TaskCategory(this.name);
-
-  final String name;
-}
 
 class HomePage extends StatefulWidget {
   final User user;
   final AuthService _authService = AuthService();
-  final DatabaseService _databaseService = DatabaseService();
 
   HomePage({super.key, required this.user});
 
@@ -29,51 +26,19 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+enum TaskCategory {
+  URGENT("Urgent"),
+  IMPORTANT("Important");
+
+  final String name;
+
+  const TaskCategory(this.name);
+}
+
 class _HomePageState extends State<HomePage> {
   bool _isUrgentSelected = false;
   bool _isImportantSelected = false;
   bool _isAllSelected = true;
-
-  _allChipSelected(state) {
-    setState(() {
-      _isAllSelected = true;
-      _isUrgentSelected = false;
-      _isImportantSelected = false;
-    });
-  }
-
-  _urgentChipSelected(state) {
-    setState(() {
-      // Logic to unselect a chip only when any another chip is active
-      bool isAnyOtherChipSelected = _isImportantSelected || _isAllSelected;
-      if (state || isAnyOtherChipSelected) {
-        _isUrgentSelected = state;
-      }
-      _isAllSelected = false;
-    });
-  }
-
-  _importantChipSelected(state) {
-    setState(() {
-      // Logic to unselect a chip only when any another chip is active
-      bool isAnyOtherChipActive = _isUrgentSelected || _isAllSelected;
-      if (state || isAnyOtherChipActive) {
-        _isImportantSelected = state;
-      }
-      _isAllSelected = false;
-    });
-  }
-
-  _getTaskList(AsyncSnapshot<QuerySnapshot> snapshot) {
-    return snapshot.data!.docs
-        .map((doc) {
-          var data = doc.data() as Map<String, dynamic>;
-          data['taskId'] = doc.id;
-          return Task.fromJson(data);
-        })
-        .where((task) => task.uid == widget.user.uid)
-        .toList();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,44 +49,67 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             TaskCategoryFilterChips(
-                _isAllSelected,
-                _isUrgentSelected,
-                _isImportantSelected,
-                _allChipSelected,
-                _urgentChipSelected,
-                _importantChipSelected),
+              _isAllSelected,
+              _isUrgentSelected,
+              _isImportantSelected,
+              _allChipSelected,
+              _urgentChipSelected,
+              _importantChipSelected,
+            ),
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: widget._databaseService.getAllTasks(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    //TODO: Add a snackbar for error msg.
-                    return Text('Error: ${snapshot.error}');
-                  } else if (snapshot.hasData) {
-                    return buildTaskListWidget(snapshot);
-                  } else {
-                    return const Text('No tasks found');
-                  }
-                },
-              ),
+              child: StoreConnector<AppState, ViewModel>(
+                  onInit: (Store<AppState> store) {
+                    store.dispatch(getTasksAndDispatch(widget.user.uid));
+                  },
+                  converter: (store) => ViewModel.fromStore(store),
+                  builder: (context, vm) {
+                    switch (vm.status) {
+                      case TasksStatus.loading:
+                        return const Center(child: CircularProgressIndicator());
+                      case TasksStatus.error:
+                        //TODO: Think how to handle this?
+                        return Text('Error: ${vm.error}');
+                      case TasksStatus.success:
+                        return buildTaskListWidget(vm.tasks);
+                      default:
+                        return const Text('No tasks found');
+                    }
+                  }),
+
+              // TODO: Remove this code after implementing redux
+              // child: FutureBuilder<QuerySnapshot>(
+              //   future: DatabaseService.instance.getTasks(widget.user.uid),
+              //   builder: (context, snapshot) {
+              //     if (snapshot.connectionState == ConnectionState.waiting) {
+              //       return const Center(child: CircularProgressIndicator());
+              //     } else if (snapshot.hasError) {
+              //       return Text('Error: ${snapshot.error}');
+              //     } else if (snapshot.hasData) {
+              //       return buildTaskListWidget(snapshot);
+              //     } else {
+              //       return const Text('No tasks found');
+              //     }
+              //   },
+              // ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, RouteNames.CREATE_TASK,
-              arguments: widget.user);
+          Navigator.pushNamed(
+            context,
+            RouteNames.CREATE_TASK,
+            arguments: widget.user,
+          );
         },
         child: const Icon(Icons.edit),
       ),
     );
   }
 
-  Widget buildTaskListWidget(AsyncSnapshot<QuerySnapshot> snapshot) {
-    final tasks = _getTaskList(snapshot);
+  Widget buildTaskListWidget(List<Task> tasks) {
+    // final tasks = _getTaskList(snapshot);
     if (tasks.isEmpty) {
       return const Center(
         child: Text(
@@ -157,6 +145,7 @@ class _HomePageState extends State<HomePage> {
         if (index < activeTasks.length) {
           return TaskWidget(task: activeTasks[index]);
         } else if (index == activeTasks.length && completedTasks.isNotEmpty) {
+          print('Completed Separator');
           return CompletedSeparator();
         } else {
           final completedIndex =
@@ -165,6 +154,53 @@ class _HomePageState extends State<HomePage> {
         }
       },
     );
+  }
+
+  _allChipSelected(state) {
+    setState(() {
+      _isAllSelected = true;
+      _isUrgentSelected = false;
+      _isImportantSelected = false;
+    });
+  }
+
+  _appbar() {
+    return AppBar(
+      title: const Text('To Do'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.exit_to_app),
+          onPressed: () async {
+            bool? confirmSignOut = await _showConfirmationDialog(context);
+            if (confirmSignOut ?? false) {
+              await widget._authService.signOut(context);
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  _getTaskList(AsyncSnapshot<QuerySnapshot> snapshot) {
+    return snapshot.data!.docs
+        .map((doc) {
+          var data = doc.data() as Map<String, dynamic>;
+          data['taskId'] = doc.id;
+          return Task.fromJson(data);
+        })
+        .where((task) => task.uid == widget.user.uid)
+        .toList();
+  }
+
+  _importantChipSelected(state) {
+    setState(() {
+      // Logic to unselect a chip only when any another chip is active
+      bool isAnyOtherChipActive = _isUrgentSelected || _isAllSelected;
+      if (state || isAnyOtherChipActive) {
+        _isImportantSelected = state;
+      }
+      _isAllSelected = false;
+    });
   }
 
   Future<bool?> _showConfirmationDialog(BuildContext context) async {
@@ -228,20 +264,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  _appbar() {
-    return AppBar(
-      title: const Text('To Do'),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.exit_to_app),
-          onPressed: () async {
-            bool? confirmSignOut = await _showConfirmationDialog(context);
-            if (confirmSignOut ?? false) {
-              await widget._authService.signOut(context);
-            }
-          },
-        ),
-      ],
-    );
+  _urgentChipSelected(state) {
+    setState(() {
+      // Logic to unselect a chip only when any another chip is active
+      bool isAnyOtherChipSelected = _isImportantSelected || _isAllSelected;
+      if (state || isAnyOtherChipSelected) {
+        _isUrgentSelected = state;
+      }
+      _isAllSelected = false;
+    });
   }
 }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import 'package:voyzon/common/dateSelectorWidget.dart';
 import 'package:voyzon/models/user.dart';
 import 'package:voyzon/services/databaseServices.dart';
@@ -10,13 +11,11 @@ class CreateTaskPage extends StatefulWidget {
   final User? user;
   CreateTaskPage({this.user, this.task});
 
-
   @override
   _CreateTaskPageState createState() => _CreateTaskPageState();
 }
 
 class _CreateTaskPageState extends State<CreateTaskPage> {
-  final DatabaseService _databaseService = DatabaseService();
   final _formKey = GlobalKey<FormState>();
   late User? user;
   List<DateTime> _dates = [];
@@ -30,23 +29,22 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
 
   @override
   void initState() {
-  super.initState();
-  DateTime now = DateTime.now();
-  DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-  user = widget.user;
-  task = widget.task ?? Task(); // Use provided task or create new one
-  _titleController = TextEditingController(text: task.title);
-  _descriptionController = TextEditingController(text: task.description);
-  _dates = _getDatesInRange(now, lastDayOfMonth);
-  _selectedDates = List.generate(_dates.length, (_) => false);
-  _isUrgent = task.urgent ?? false;
-  _isImportant = task.important ?? false;
+    super.initState();
+    DateTime now = DateTime.now();
+    DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+    user = widget.user;
+    task = widget.task ?? Task(); // Use provided task or create new one
+    _titleController = TextEditingController(text: task.title);
+    _descriptionController = TextEditingController(text: task.description);
+    _dates = _getDatesInRange(now, lastDayOfMonth);
+    _selectedDates = List.generate(_dates.length, (_) => false);
+    _isUrgent = task.urgent ?? false;
+    _isImportant = task.important ?? false;
 
-  if (user != null) {
-    task.uid = user!.uid;
+    if (user != null) {
+      task.uid = user!.uid;
+    }
   }
-}
-
 
   List<DateTime> _getDatesInRange(DateTime startDate, DateTime endDate) {
     List<DateTime> dates = [];
@@ -57,28 +55,29 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   }
 
   void _submitTask() {
-  if (_formKey.currentState!.validate()) {
-    // Populate task with form values
-    task.title = _titleController.text;
-    task.description = _descriptionController.text;
-    task.urgent = _isUrgent;
-    task.important = _isImportant;
-    task.isActive = true;
-    task.createdAt = Timestamp.fromDate(DateTime.now());
-    print(user?.uid);
+    if (_formKey.currentState!.validate()) {
+      // Populate task with form values
+      task.title = _titleController.text;
+      task.description = _descriptionController.text;
+      task.urgent = _isUrgent;
+      task.important = _isImportant;
+      task.isActive = true;
+      task.createdAt = Timestamp.fromDate(DateTime.now());
+      task.taskId = const Uuid().v4();
+      print(user?.uid);
 
-    if (widget.task == null) {
-      // If task is null, it's a new task, so add it
-      _databaseService.addTask(task);
-    } else {
-      // If task is not null, it's an existing task, so update it
-      _databaseService.updateTask(task);
+      if (widget.task == null) {
+        // If task is null, it's a new task, so add it
+        DatabaseService.instance.addTask(task);
+      } else {
+        // If task is not null, it's an existing task, so update it
+        DatabaseService.instance.updateTask(task);
+      }
+
+      // Navigate back
+      Navigator.of(context).pop();
     }
-
-    // Navigate back
-    Navigator.of(context).pop();
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +105,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _titleController,
-                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontSize: 26, fontWeight: FontWeight.bold),
                           decoration: InputDecoration(
                             hintText: 'Title',
                             hintStyle: TextStyle(color: Colors.grey[700]),
@@ -164,9 +164,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                         backgroundColor:
                             _isUrgent ? Colors.orange[100] : Colors.transparent,
                         selectedColor: Colors.orange[100],
-                        labelStyle: TextStyle(
-                            fontSize: 14,
-                            color:  Colors.orange[600]),
+                        labelStyle:
+                            TextStyle(fontSize: 14, color: Colors.orange[600]),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         shape: RoundedRectangleBorder(
                           side: BorderSide(
@@ -190,9 +189,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                             ? Colors.orange[100]
                             : Colors.transparent,
                         selectedColor: Colors.orange[100],
-                        labelStyle: TextStyle(
-                            fontSize: 14,
-                            color:  Colors.orange[600]),
+                        labelStyle:
+                            TextStyle(fontSize: 14, color: Colors.orange[600]),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         shape: RoundedRectangleBorder(
                           side: BorderSide(
@@ -234,4 +232,3 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     });
   }
 }
-
