@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:voyzon/redux/appState.dart';
 
 import '../../models/task.dart';
 import '../../services/databaseServices.dart';
-import 'tasksState.dart';
 
 ThunkAction<AppState> getTasksAndDispatch(String uid) {
   return (Store<AppState> store) async {

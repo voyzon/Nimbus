@@ -17,7 +17,8 @@ class TaskCategoryFilterChips extends StatelessWidget {
       this.isImportantSelected,
       this.allChipSelected,
       this.urgentChipSelected,
-      this.importantChipSelected, {super.key});
+      this.importantChipSelected,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +26,11 @@ class TaskCategoryFilterChips extends StatelessWidget {
       children: [
         _TaskFilterChip("All", isAllSelected, allChipSelected),
         const _SizedBox(),
-        _TaskFilterChip(TaskCategory.URGENT.name, isUrgentSelected, urgentChipSelected),
+        _TaskFilterChip(
+            TaskCategory.URGENT.name, isUrgentSelected, urgentChipSelected),
         const _SizedBox(),
-        _TaskFilterChip(TaskCategory.IMPORTANT.name, isImportantSelected, importantChipSelected),
+        _TaskFilterChip(TaskCategory.IMPORTANT.name, isImportantSelected,
+            importantChipSelected),
       ],
     );
   }

@@ -11,7 +11,6 @@ import 'package:voyzon/models/task.dart';
 import 'package:voyzon/redux/appState.dart';
 import 'package:voyzon/redux/tasks/tasksAction.dart';
 import 'package:voyzon/redux/tasks/tasksState.dart';
-import 'package:voyzon/services/databaseServices.dart';
 
 import '../common/viewModel.dart';
 import '../models/user.dart';

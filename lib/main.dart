@@ -7,7 +7,6 @@ import 'package:voyzon/firebase_options.dart';
 import 'package:voyzon/models/user.dart';
 import 'package:voyzon/redux/appReducers.dart';
 import 'package:voyzon/redux/appState.dart';
-import 'package:voyzon/redux/tasks/tasksAction.dart';
 import 'package:voyzon/screens/createTaskPage.dart';
 import 'package:voyzon/screens/landingPage.dart';
 
@@ -51,6 +50,7 @@ class MyApp extends StatelessWidget {
                 return MaterialPageRoute(
                     builder: (_) => CreateTaskPage(user: args));
               }
+            // TODO: Add more routes here, and handle error route
             // default:
             //   return _errorRoute
           }
